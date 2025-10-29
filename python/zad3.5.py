@@ -1,0 +1,173 @@
+#!/usr/bin/env python3
+import sys
+import numpy as np
+import math  # Potrzebne do przeliczenia czasu na kąty (PI)
+
+from glfw.GLFW import *
+
+from OpenGL.GL import *
+from OpenGL.GLU import *
+
+# Ustawiamy rozdzielczość siatki (N x N)
+N = 30
+
+# Globalna tablica do przechowywania wierzchołków
+VERTICES = np.zeros((N, N, 3))
+
+
+def startup():
+    """ Oblicza wierzchołki i włącza bufor głębi """
+    global VERTICES, N
+
+    update_viewport(None, 400, 400)
+    glClearColor(0.0, 0.0, 0.0, 1.0)  # Czarne tło
+
+    glEnable(GL_DEPTH_TEST)
+
+    u_values = np.linspace(0.0, 1.0, N)
+    v_values = np.linspace(0.0, 1.0, N)
+
+    pi = np.pi
+
+    for i in range(N):
+        for j in range(N):
+            u = u_values[i]
+            v = v_values[j]
+
+            # Równania parametryczne dla jajka
+            u2 = u * u
+            u3 = u2 * u
+            u4 = u3 * u
+            u5 = u4 * u
+
+            P_u = (-90 * u5 + 225 * u4 - 270 * u3 + 180 * u2 - 45 * u)
+
+            x = P_u * np.cos(pi * v)
+            z = P_u * np.sin(pi * v)
+            y = 160 * u4 - 320 * u3 + 160 * u2 - 5.0
+
+            VERTICES[i][j][0] = x
+            VERTICES[i][j][1] = y
+            VERTICES[i][j][2] = z
+
+
+def shutdown():
+    pass
+
+
+def axes():
+    """ Rysuje osie X (czerwona), Y (zielona), Z (niebieska) """
+    glBegin(GL_LINES)
+    # X (Czerwona)
+    glColor3f(1.0, 0.0, 0.0)
+    glVertex3f(-5.0, 0.0, 0.0)
+    glVertex3f(5.0, 0.0, 0.0)
+    # Y (Zielona)
+    glColor3f(0.0, 1.0, 0.0)
+    glVertex3f(0.0, -5.0, 0.0)
+    glVertex3f(0.0, 5.0, 0.0)
+    # Z (Niebieska)
+    glColor3f(0.0, 0.0, 1.0)
+    glVertex3f(0.0, 0.0, -5.0)
+    glVertex3f(0.0, 0.0, 5.0)
+    glEnd()
+
+
+# =================================================================
+# Funkcja Spin (zgodnie z prezentacją)
+# =================================================================
+def spin(angle):
+    """ Obraca scenę wokół osi X, Y i Z """
+    glRotatef(angle, 1.0, 0.0, 0.0)
+    glRotatef(angle, 0.0, 1.0, 0.0)
+    glRotatef(angle, 0.0, 0.0, 1.0)
+
+
+def render(time):
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+    glMatrixMode(GL_MODELVIEW)
+    glLoadIdentity()
+
+    # --- Wymaganie 3.5: Obracanie obiektu --- [cite: 507]
+    angle = time * 180 / math.pi  #
+    spin(angle)  #
+    # ----------------------------------------
+
+    axes()
+
+    # --- Wymaganie 3.5: Rysowanie liniami (GL_LINES) ---
+    glBegin(GL_LINES)
+    glColor3f(1.0, 1.0, 1.0)  # Kolor linii (biały)
+
+    # Używamy pętli do N-1, aby uniknąć wyjścia poza zakres tablicy
+    # podczas łączenia z (i+1) lub (j+1)
+
+    # Rysowanie linii "pionowych" (wzdłuż osi u)
+    # Łączymy (i, j) z (i+1, j)
+    for i in range(N - 1):
+        for j in range(N):
+            glVertex3fv(VERTICES[i][j])
+            glVertex3fv(VERTICES[i + 1][j])
+
+    # Rysowanie linii "poziomych" (wzdłuż osi v)
+    # Łączymy (i, j) z (i, j+1)
+    for i in range(N):
+        for j in range(N - 1):
+            glVertex3fv(VERTICES[i][j])
+            glVertex3fv(VERTICES[i][j + 1])
+
+    glEnd()
+    # ---------------------------------------------------
+
+    glFlush()
+
+
+def update_viewport(window, width, height):
+    if height == 0:
+        height = 1
+    if width == 0:
+        width = 1
+    aspect_ratio = width / height
+
+    glMatrixMode(GL_PROJECTION)
+    glViewport(0, 0, width, height)
+    glLoadIdentity()
+
+    if width <= height:
+        glOrtho(-7.5, 7.5, -7.5 / aspect_ratio, 7.5 / aspect_ratio, -10.0, 10.0)
+    else:
+        glOrtho(-7.5 * aspect_ratio, 7.5 * aspect_ratio, -7.5, 7.5, -10.0, 10.0)
+
+    glMatrixMode(GL_MODELVIEW)
+    glLoadIdentity()
+
+
+def main():
+    if not glfwInit():
+        sys.exit(-1)
+
+    window = glfwCreateWindow(400, 400, "Lab 3: Jajko 3D (Linie)", None, None)
+    if not window:
+        glfwTerminate()
+        sys.exit(-1)
+
+    glfwMakeContextCurrent(window)
+    glfwSetFramebufferSizeCallback(window, update_viewport)
+    glfwSwapInterval(1)
+
+    width, height = glfwGetFramebufferSize(window)
+    update_viewport(window, width, height)
+
+    startup()
+
+    while not glfwWindowShouldClose(window):
+        render(glfwGetTime())
+        glfwSwapBuffers(window)
+        glfwPollEvents()
+
+    shutdown()
+    glfwTerminate()
+
+
+if __name__ == '__main__':
+    main()
