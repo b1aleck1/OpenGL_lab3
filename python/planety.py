@@ -12,7 +12,6 @@ N = 20  # Rozdzielczość siatki sfery
 VERTICES = np.zeros((N, N, 3))
 
 def startup():
-    # ... (startup bez zmian)
     global VERTICES, N
     update_viewport(None, 400, 400)
     glClearColor(0.0, 0.0, 0.0, 1.0)
@@ -36,7 +35,6 @@ def shutdown():
     pass
 
 def axes():
-    # ... (axes bez zmian)
     glBegin(GL_LINES)
     glColor3f(1.0, 0.0, 0.0)
     glVertex3f(-7.5, 0.0, 0.0); glVertex3f(7.5, 0.0, 0.0)
@@ -47,13 +45,11 @@ def axes():
     glEnd()
 
 def spin(angle):
-    # ... (spin bez zmian)
     glRotatef(angle, 1.0, 0.0, 0.0)
     glRotatef(angle, 0.0, 1.0, 0.0)
     glRotatef(angle, 0.0, 0.0, 1.0)
 
 def draw_sphere_model():
-    # ... (draw_sphere_model bez zmian)
     global VERTICES, N
     for i in range(N - 1):
         glBegin(GL_TRIANGLE_STRIP)
@@ -62,18 +58,15 @@ def draw_sphere_model():
             glVertex3fv(VERTICES[i + 1][j])
         glEnd()
 
-# =================================================================
-# ZMODYFIKOWANA FUNKCJA: Rysowanie orbity eliptycznej
-# =================================================================
 def draw_orbit(radius_a, radius_b):
-    """ Rysuje elipsę w płaszczyźnie XZ (orbita) """
+    # Rysuje elipsę w płaszczyźnie XZ (orbita)
     glBegin(GL_LINE_LOOP)
     glColor3f(0.5, 0.5, 0.5) # Szary
 
     segments = 100
     for i in range(segments):
         angle = (i / segments) * 2 * math.pi
-        # Używamy różnych promieni dla X i Z
+        # Używam różnych promieni dla X i Z
         x = radius_a * math.cos(angle)
         z = radius_b * math.sin(angle)
         glVertex3f(x, 0.0, z) # Rysujemy na płaszczyźnie Y=0
@@ -90,28 +83,27 @@ def render(time):
 
     axes()
 
-    # --- Symulacja ---
 
-    # 1. Rysujemy Słońce (w centrum)
+    # Słońce (w centrum)
     glPushMatrix()
     glColor3f(1.0, 1.0, 0.0) # Żółty
     glScalef(1.5, 1.5, 1.5)
     draw_sphere_model()
     glPopMatrix()
 
-    # === PLANETA 1 (Niebieska) ===
+    # PLANETA 1 (Niebieska)
 
     # Definiujemy półoś wielką (a) i małą (b)
     orbit_radius_a_1 = 7.0 # Półos wielka (rozciągnięcie w X)
     orbit_radius_b_1 = 5.0 # Półos mała (rozciągnięcie w Z)
     orbit_speed_1 = 1.0
 
-    # 2. Rysujemy Orbitę 1 (eliptyczną)
+    # Orbita 1 (eliptyczną)
     glPushMatrix()
     draw_orbit(orbit_radius_a_1, orbit_radius_b_1)
     glPopMatrix()
 
-    # 3. Rysujemy Planetę 1 (ruch po elipsie)
+    # Planetę 1 (ruch po elipsie)
     glPushMatrix()
     orbit_angle_1 = time * orbit_speed_1
     # Używamy różnych promieni dla X i Z
@@ -119,24 +111,24 @@ def render(time):
     planet_z_1 = orbit_radius_b_1 * math.sin(orbit_angle_1)
 
     glTranslatef(planet_x_1, 0.0, planet_z_1)
-    glRotatef(time * 100.0, 0.0, 1.0, 0.0) # Obrót własny
+    glRotatef(time * 100.0, 0.0, 1.0, 0.0)
 
     glColor3f(0.2, 0.5, 1.0) # Niebieski
     draw_sphere_model()
     glPopMatrix()
 
-    # === PLANETA 2 (Czerwona) ===
+    # PLANETA 2 (Czerwona)
 
     orbit_radius_a_2 = 10.0 # Dalsza orbita, bardziej rozciągnięta
     orbit_radius_b_2 = 8.0
     orbit_speed_2 = 0.5  # Wolniejszy ruch
 
-    # 4. Rysujemy Orbitę 2 (eliptyczną)
+    # Orbita 2 (eliptyczną)
     glPushMatrix()
     draw_orbit(orbit_radius_a_2, orbit_radius_b_2)
     glPopMatrix()
 
-    # 5. Rysujemy Planetę 2 (ruch po elipsie)
+    # Planeta 2 (ruch po elipsie)
     glPushMatrix()
     orbit_angle_2 = time * orbit_speed_2
     planet_x_2 = orbit_radius_a_2 * math.cos(orbit_angle_2)
@@ -149,13 +141,12 @@ def render(time):
     glScalef(0.7, 0.7, 0.7)  # Mniejsza planeta
     draw_sphere_model()
     glPopMatrix()
-    # ------------------
 
     glFlush()
 
 
 def update_viewport(window, width, height):
-    # Zwiększamy nieco zakres, aby zmieścić większe orbity
+    # Zwiększam nieco zakres, aby zmieścić większe orbity
     if height == 0: height = 1
     if width == 0: width = 1
     aspect_ratio = width / height
