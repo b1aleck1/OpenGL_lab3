@@ -8,8 +8,7 @@ from glfw.GLFW import *
 from OpenGL.GL import *
 from OpenGL.GLU import *
 
-# Parametr programu: Stopień samopodobieństwa (liczba iteracji)
-MAX_RECURSION_LEVEL = 3  # Ustaw na 4 lub 5 dla większej szczegółowości (ale wolniej)
+MAX_RECURSION_LEVEL = 3
 
 # Globalne definicje wierzchołków i kolorów dla bazowego czworościanu
 # Używamy numpy dla łatwiejszych obliczeń na wektorach (np. (v1+v2)/2)
@@ -35,7 +34,6 @@ def shutdown():
 
 
 def axes():
-    # ... (funkcja axes bez zmian)
     glBegin(GL_LINES)
     glColor3f(1.0, 0.0, 0.0)
     glVertex3f(-7.5, 0.0, 0.0);
@@ -55,10 +53,6 @@ def spin(angle):
     glRotatef(angle, 0.0, 1.0, 0.0)
     glRotatef(angle, 0.0, 0.0, 1.0)
 
-
-# =================================================================
-# NOWE FUNKCJE DLA OCENY 5.0
-# =================================================================
 
 def draw_tetrahedron(v0, v1, v2, v3, c0, c1, c2, c3):
     """ Rysuje pojedynczy czworościan (4 ściany) z interpolacją kolorów. """
@@ -102,13 +96,10 @@ def draw_tetrahedron(v0, v1, v2, v3, c0, c1, c2, c3):
 def draw_sierpinski_tetrahedron(v0, v1, v2, v3, c0, c1, c2, c3, level):
     """ Funkcja rekurencyjna generująca fraktal. """
 
-    # 1. Warunek bazowy (zatrzymania)
     # Jeśli osiągnięto zadaną liczbę iteracji, rysuj czworościan
     if level == 0:
         draw_tetrahedron(v0, v1, v2, v3, c0, c1, c2, c3)
         return
-
-    # 2. Krok rekurencyjny
 
     # Obliczanie 6 punktów środkowych krawędzi (wierzchołków)
     m01 = (v0 + v1) / 2.0
@@ -155,7 +146,6 @@ def render(time):
 
     axes()
 
-    # Wywołanie głównej funkcji rysującej fraktal
     draw_sierpinski_tetrahedron(V0, V1, V2, V3, C0, C1, C2, C3, MAX_RECURSION_LEVEL)
 
     glFlush()
@@ -170,7 +160,7 @@ def update_viewport(window, width, height):
     glViewport(0, 0, width, height)
     glLoadIdentity()
 
-    # Zwiększamy nieco rzutnię, aby zmieścić większy model
+    # Zwiększono nieco rzutnię, aby zmieścić większy model
     if width <= height:
         glOrtho(-10.0, 10.0, -10.0 / aspect_ratio, 10.0 / aspect_ratio, -15.0, 15.0)
     else:
