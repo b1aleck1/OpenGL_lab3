@@ -162,9 +162,7 @@ def update_viewport(window, width, height):
 
 
 def main():
-    # ... (bez zmian)
     if not glfwInit(): sys.exit(-1)
-    # Zmieniamy tytuł okna
     window = glfwCreateWindow(400, 400, "Lab 3: Symulacja (Orbity Eliptyczne)", None, None)
     if not window: glfwTerminate(); sys.exit(-1)
     glfwMakeContextCurrent(window)
