@@ -8,132 +8,105 @@ from glfw.GLFW import *
 from OpenGL.GL import *
 from OpenGL.GLU import *
 
-MAX_RECURSION_LEVEL = 3
+N = 20
+VERTICES = np.zeros((N, N, 3))
 
-# Globalne definicje wierzchołków i kolorów dla bazowego czworościanu
-# Używamy numpy dla łatwiejszych obliczeń na wektorach (np. (v1+v2)/2)
-V0 = np.array([0.0, 6.0, 0.0])
-V1 = np.array([-6.0, -4.0, 6.0])
-V2 = np.array([6.0, -4.0, 6.0])
-V3 = np.array([0.0, -4.0, -6.0])
-
-C0 = np.array([1.0, 0.0, 0.0])  # Czerwony
-C1 = np.array([0.0, 1.0, 0.0])  # Zielony
-C2 = np.array([0.0, 0.0, 1.0])  # Niebieski
-C3 = np.array([1.0, 1.0, 0.0])  # Żółty
+# STAŁE FIZYCZNE I GEOMETRYCZNE (Dla Praw Keplera)
+G_GRAV = 1.0;
+M_SUN = 100.0
+A1 = 7.0;
+E1 = 0.2;
+B1 = A1 * math.sqrt(1 - E1 ** 2);
+FOCAL_DIST_1 = A1 * E1
+A2 = 10.0;
+E2 = 0.4;
+B2 = A2 * math.sqrt(1 - E2 ** 2);
+FOCAL_DIST_2 = A2 * E2
+ORBIT_SPEED_FAC_1 = math.sqrt(G_GRAV * M_SUN / (A1 ** 3))
+ORBIT_SPEED_FAC_2 = math.sqrt(G_GRAV * M_SUN / (A2 ** 3))
 
 
 def startup():
-    update_viewport(None, 400, 400)
-    glClearColor(0.0, 0.0, 0.0, 1.0)
-    glEnable(GL_DEPTH_TEST)  # Włączenie bufora głębi jest kluczowe dla 3D
+    global VERTICES, N
+    update_viewport(None, 400, 400);
+    glClearColor(0.0, 0.0, 0.0, 1.0);
+    glEnable(GL_DEPTH_TEST)
+    u_values = np.linspace(0.0, 1.0, N);
+    v_values = np.linspace(0.0, 1.0, N)
+    pi = np.pi;
+    radius = 1.0
+    for i in range(N):
+        for j in range(N):
+            phi = u_values[i] * pi;
+            theta = v_values[j] * 2 * pi
+            x = radius * math.sin(phi) * math.cos(theta)
+            y = radius * math.cos(phi)
+            z = radius * math.sin(phi) * math.sin(theta)
+            VERTICES[i][j][0] = x;
+            VERTICES[i][j][1] = y;
+            VERTICES[i][j][2] = z
 
 
-def shutdown():
-    pass
+def shutdown(): pass
 
 
 def axes():
     glBegin(GL_LINES)
-    glColor3f(1.0, 0.0, 0.0)
-    glVertex3f(-7.5, 0.0, 0.0);
-    glVertex3f(7.5, 0.0, 0.0)
-    glColor3f(0.0, 1.0, 0.0)
-    glVertex3f(0.0, -7.5, 0.0);
-    glVertex3f(0.0, 7.5, 0.0)
-    glColor3f(0.0, 0.0, 1.0)
-    glVertex3f(0.0, 0.0, -7.5);
-    glVertex3f(0.0, 0.0, 7.5)
+    glColor3f(1.0, 0.0, 0.0);
+    glVertex3f(-12.0, 0.0, 0.0);
+    glVertex3f(12.0, 0.0, 0.0)
+    glColor3f(0.0, 1.0, 0.0);
+    glVertex3f(0.0, -12.0, 0.0);
+    glVertex3f(0.0, 12.0, 0.0)
+    glColor3f(0.0, 0.0, 1.0);
+    glVertex3f(0.0, 0.0, -12.0);
+    glVertex3f(0.0, 0.0, 12.0)
     glEnd()
 
 
-def spin(angle):
-    # ... (funkcja spin bez zmian)
-    glRotatef(angle, 1.0, 0.0, 0.0)
-    glRotatef(angle, 0.0, 1.0, 0.0)
-    glRotatef(angle, 0.0, 0.0, 1.0)
+# Nowa funkcja obracająca całą scenę (nie tylko kamerę)
+def rotate_system(angle):
+    glRotatef(30.0, 1.0, 0.0, 0.0)  # Stałe pochylenie osi X, aby widzieć 3D
+    glRotatef(angle, 0.0, 1.0, 0.0)  # Obrót całego układu wokół osi Y
 
 
-def draw_tetrahedron(v0, v1, v2, v3, c0, c1, c2, c3):
-    """ Rysuje pojedynczy czworościan (4 ściany) z interpolacją kolorów. """
-    glBegin(GL_TRIANGLES)
+def draw_sphere_model():
+    global VERTICES, N
+    for i in range(N - 1):
+        glBegin(GL_TRIANGLE_STRIP)
+        for j in range(N):
+            glVertex3fv(VERTICES[i][j]);
+            glVertex3fv(VERTICES[i + 1][j])
+        glEnd()
 
-    # Ściana 1 (v0, v1, v2)
-    glColor3fv(c0);
-    glVertex3fv(v0)
-    glColor3fv(c1);
-    glVertex3fv(v1)
-    glColor3fv(c2);
-    glVertex3fv(v2)
 
-    # Ściana 2 (v0, v2, v3)
-    glColor3fv(c0);
-    glVertex3fv(v0)
-    glColor3fv(c2);
-    glVertex3fv(v2)
-    glColor3fv(c3);
-    glVertex3fv(v3)
+# ... (draw_orbit i get_kepler_position bez zmian)
 
-    # Ściana 3 (v0, v3, v1)
-    glColor3fv(c0);
-    glVertex3fv(v0)
-    glColor3fv(c3);
-    glVertex3fv(v3)
-    glColor3fv(c1);
-    glVertex3fv(v1)
+def get_kepler_position(A, E, time, orbit_speed_fac):
+    M = time * orbit_speed_fac
+    E_anomaly = M
+    for _ in range(5):
+        E_anomaly = E_anomaly - (E_anomaly - E * math.sin(E_anomaly) - M) / (1 - E * math.cos(E_anomaly))
+    x_pos = A * (math.cos(E_anomaly) - E)
+    z_pos = A * math.sqrt(1 - E ** 2) * math.sin(E_anomaly)
+    return x_pos, z_pos
 
-    # Ściana 4 (Podstawa: v1, v3, v2)
-    glColor3fv(c1);
-    glVertex3fv(v1)
-    glColor3fv(c3);
-    glVertex3fv(v3)
-    glColor3fv(c2);
-    glVertex3fv(v2)
 
+def draw_orbit(A, B, FOCAL_DIST):
+    glBegin(GL_LINE_LOOP);
+    glColor3f(0.5, 0.5, 0.5);
+    segments = 150
+    for i in range(segments):
+        angle = (i / segments) * 2 * math.pi
+        x_ellip = A * math.cos(angle);
+        z_ellip = B * math.sin(angle)
+        x = x_ellip + FOCAL_DIST;
+        z = z_ellip
+        glVertex3f(x, 0.0, z)
     glEnd()
 
 
-def draw_sierpinski_tetrahedron(v0, v1, v2, v3, c0, c1, c2, c3, level):
-    """ Funkcja rekurencyjna generująca fraktal. """
-
-    # Jeśli osiągnięto zadaną liczbę iteracji, rysuj czworościan
-    if level == 0:
-        draw_tetrahedron(v0, v1, v2, v3, c0, c1, c2, c3)
-        return
-
-    # Obliczanie 6 punktów środkowych krawędzi (wierzchołków)
-    m01 = (v0 + v1) / 2.0
-    m02 = (v0 + v2) / 2.0
-    m03 = (v0 + v3) / 2.0
-    m12 = (v1 + v2) / 2.0
-    m13 = (v1 + v3) / 2.0
-    m23 = (v2 + v3) / 2.0
-
-    # Obliczanie 6 kolorów środkowych (interpolacja)
-    mc01 = (c0 + c1) / 2.0
-    mc02 = (c0 + c2) / 2.0
-    mc03 = (c0 + c3) / 2.0
-    mc12 = (c1 + c2) / 2.0
-    mc13 = (c1 + c3) / 2.0
-    mc23 = (c2 + c3) / 2.0
-
-    new_level = level - 1
-
-    # 3. Wywołania rekurencyjne dla 4 mniejszych czworościanów
-
-    # Czworościan 1 (górny)
-    draw_sierpinski_tetrahedron(v0, m01, m02, m03, c0, mc01, mc02, mc03, new_level)
-
-    # Czworościan 2 (róg v1)
-    draw_sierpinski_tetrahedron(m01, v1, m12, m13, mc01, c1, mc12, mc13, new_level)
-
-    # Czworościan 3 (róg v2)
-    draw_sierpinski_tetrahedron(m02, m12, v2, m23, mc02, mc12, c2, mc23, new_level)
-
-    # Czworościan 4 (róg v3)
-    draw_sierpinski_tetrahedron(m03, m13, m23, v3, mc03, mc13, mc23, c3, new_level)
-
-    # Centralny ośmiościan (m01, m02, m03, m12, m13, m23) jest pomijany.
+# ... (Koniec draw_orbit)
 
 
 def render(time):
@@ -141,12 +114,54 @@ def render(time):
     glMatrixMode(GL_MODELVIEW)
     glLoadIdentity()
 
-    angle = time * 180 / math.pi
-    spin(angle)
+    # --- PRZESUNIĘCIE I OBRÓT CAŁEGO SYSTEMU ---
+    # Zaczynamy od macierzy jednostkowej, a potem obracamy cały układ.
+
+    angle = time * 30.0
+    rotate_system(angle)  # Obrót sceny
+    # ---------------------------------------------
 
     axes()
 
-    draw_sierpinski_tetrahedron(V0, V1, V2, V3, C0, C1, C2, C3, MAX_RECURSION_LEVEL)
+    # 1. Rysujemy Słońce (znajduje się w ognisku: 0,0,0)
+    glPushMatrix()
+    glColor3f(1.0, 1.0, 0.0);
+    glScalef(1.5, 1.5, 1.5)
+    draw_sphere_model()
+    glPopMatrix()
+
+    # === PLANETA 1 (Niebieska) ===
+    planet_x_1, planet_z_1 = get_kepler_position(A1, E1, time, ORBIT_SPEED_FAC_1)
+
+    # Rysujemy Orbitę 1
+    glPushMatrix()
+    draw_orbit(A1, B1, FOCAL_DIST_1)
+    glPopMatrix()
+
+    # Przesunięcie i Rysowanie Planety 1
+    glPushMatrix()
+    glTranslatef(planet_x_1, 0.0, planet_z_1)  # PRZESUNIĘCIE W NIE-OBRÓCONEJ PŁASZCZYŹNIE!
+    glRotatef(time * 100.0, 0.0, 1.0, 0.0)
+    glColor3f(0.2, 0.5, 1.0)
+    draw_sphere_model()
+    glPopMatrix()
+
+    # === PLANETA 2 (Czerwona) ===
+    planet_x_2, planet_z_2 = get_kepler_position(A2, E2, time, ORBIT_SPEED_FAC_2)
+
+    # Rysujemy Orbitę 2
+    glPushMatrix()
+    draw_orbit(A2, B2, FOCAL_DIST_2)
+    glPopMatrix()
+
+    # Przesunięcie i Rysowanie Planety 2
+    glPushMatrix()
+    glTranslatef(planet_x_2, 0.0, planet_z_2)
+    glRotatef(time * 50.0, 0.0, 1.0, 0.0)
+    glColor3f(1.0, 0.3, 0.2)
+    glScalef(0.7, 0.7, 0.7)
+    draw_sphere_model()
+    glPopMatrix()
 
     glFlush()
 
@@ -155,44 +170,31 @@ def update_viewport(window, width, height):
     if height == 0: height = 1
     if width == 0: width = 1
     aspect_ratio = width / height
-
     glMatrixMode(GL_PROJECTION)
     glViewport(0, 0, width, height)
     glLoadIdentity()
-
-    # Zwiększono nieco rzutnię, aby zmieścić większy model
     if width <= height:
-        glOrtho(-10.0, 10.0, -10.0 / aspect_ratio, 10.0 / aspect_ratio, -15.0, 15.0)
+        glOrtho(-12.0, 12.0, -12.0 / aspect_ratio, 12.0 / aspect_ratio, -20.0, 20.0)
     else:
-        glOrtho(-10.0 * aspect_ratio, 10.0 * aspect_ratio, -10.0, 10.0, -15.0, 15.0)
-
+        glOrtho(-12.0 * aspect_ratio, 12.0 * aspect_ratio, -12.0, 12.0, -20.0, 20.0)
     glMatrixMode(GL_MODELVIEW)
     glLoadIdentity()
 
 
 def main():
-    if not glfwInit():
-        sys.exit(-1)
-
-    window = glfwCreateWindow(400, 400, "Lab 3: Piramida Sierpińskiego (5.0)", None, None)
-    if not window:
-        glfwTerminate()
-        sys.exit(-1)
-
+    if not glfwInit(): sys.exit(-1)
+    window = glfwCreateWindow(400, 400, "Lab 3: Symulacja (PEŁNY KEPLER POPRAWIONY)", None, None)
+    if not window: glfwTerminate(); sys.exit(-1)
     glfwMakeContextCurrent(window)
     glfwSetFramebufferSizeCallback(window, update_viewport)
     glfwSwapInterval(1)
-
     width, height = glfwGetFramebufferSize(window)
     update_viewport(window, width, height)
-
     startup()
-
     while not glfwWindowShouldClose(window):
         render(glfwGetTime())
         glfwSwapBuffers(window)
         glfwPollEvents()
-
     shutdown()
     glfwTerminate()
 

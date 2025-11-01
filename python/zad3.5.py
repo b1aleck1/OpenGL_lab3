@@ -1,26 +1,23 @@
 #!/usr/bin/env python3
 import sys
 import numpy as np
-import math  # Potrzebne do przeliczenia czasu na kąty (PI)
+import math
 
 from glfw.GLFW import *
 
 from OpenGL.GL import *
 from OpenGL.GLU import *
 
-# Ustawiamy rozdzielczość siatki (N x N)
 N = 30
 
-# Globalna tablica do przechowywania wierzchołków
 VERTICES = np.zeros((N, N, 3))
 
 
 def startup():
-    """ Oblicza wierzchołki i włącza bufor głębi """
     global VERTICES, N
 
     update_viewport(None, 400, 400)
-    glClearColor(0.0, 0.0, 0.0, 1.0)  # Czarne tło
+    glClearColor(0.0, 0.0, 0.0, 1.0)
 
     glEnable(GL_DEPTH_TEST)
 
@@ -34,7 +31,6 @@ def startup():
             u = u_values[i]
             v = v_values[j]
 
-            # Równania parametryczne dla jajka
             u2 = u * u
             u3 = u2 * u
             u4 = u3 * u
@@ -56,7 +52,6 @@ def shutdown():
 
 
 def axes():
-    """ Rysuje osie X (czerwona), Y (zielona), Z (niebieska) """
     glBegin(GL_LINES)
     # X (Czerwona)
     glColor3f(1.0, 0.0, 0.0)
@@ -72,12 +67,8 @@ def axes():
     glVertex3f(0.0, 0.0, 5.0)
     glEnd()
 
-
-# =================================================================
-# Funkcja Spin (zgodnie z prezentacją)
-# =================================================================
 def spin(angle):
-    """ Obraca scenę wokół osi X, Y i Z """
+    # Obraca scenę wokół osi X, Y i Z
     glRotatef(angle, 1.0, 0.0, 0.0)
     glRotatef(angle, 0.0, 1.0, 0.0)
     glRotatef(angle, 0.0, 0.0, 1.0)
@@ -88,16 +79,14 @@ def render(time):
     glMatrixMode(GL_MODELVIEW)
     glLoadIdentity()
 
-    # --- Wymaganie 3.5: Obracanie obiektu --- [cite: 507]
-    angle = time * 180 / math.pi  #
-    spin(angle)  #
-    # ----------------------------------------
+    angle = time * 180 / math.pi
+    spin(angle)
 
     axes()
 
-    # --- Wymaganie 3.5: Rysowanie liniami (GL_LINES) ---
+    # Rysowanie liniami
     glBegin(GL_LINES)
-    glColor3f(1.0, 1.0, 1.0)  # Kolor linii (biały)
+    glColor3f(1.0, 1.0, 1.0)
 
     # Używamy pętli do N-1, aby uniknąć wyjścia poza zakres tablicy
     # podczas łączenia z (i+1) lub (j+1)
@@ -117,7 +106,6 @@ def render(time):
             glVertex3fv(VERTICES[i][j + 1])
 
     glEnd()
-    # ---------------------------------------------------
 
     glFlush()
 
@@ -146,7 +134,7 @@ def main():
     if not glfwInit():
         sys.exit(-1)
 
-    window = glfwCreateWindow(400, 400, "Lab 3: Jajko 3D (Linie)", None, None)
+    window = glfwCreateWindow(400, 400, "Jajko 3D, 3.5", None, None)
     if not window:
         glfwTerminate()
         sys.exit(-1)

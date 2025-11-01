@@ -9,9 +9,8 @@ from glfw.GLFW import *
 from OpenGL.GL import *
 from OpenGL.GLU import *
 
-N = 30  # Rozdzielczość siatki
+N = 30
 
-# Globalne tablice na współrzędne i kolory
 VERTICES = np.zeros((N, N, 3))
 COLORS = np.zeros((N, N, 3))
 
@@ -32,7 +31,6 @@ def startup():
             u = u_values[i]
             v = v_values[j]
 
-            # Równania parametryczne
             u2, u3, u4, u5 = u * u, u * u * u, u * u * u * u, u * u * u * u * u
             P_u = (-90 * u5 + 225 * u4 - 270 * u3 + 180 * u2 - 45 * u)
 
@@ -55,7 +53,6 @@ def shutdown():
 
 
 def axes():
-    # ... (funkcja axes bez zmian)
     glBegin(GL_LINES)
     glColor3f(1.0, 0.0, 0.0)
     glVertex3f(-5.0, 0.0, 0.0);
@@ -70,7 +67,6 @@ def axes():
 
 
 def spin(angle):
-    # ... (funkcja spin bez zmian)
     glRotatef(angle, 1.0, 0.0, 0.0)
     glRotatef(angle, 0.0, 1.0, 0.0)
     glRotatef(angle, 0.0, 0.0, 1.0)
@@ -86,8 +82,7 @@ def render(time):
 
     axes()
 
-    # --- Wymaganie 4.5: Rysowanie paskami (GL_TRIANGLE_STRIP) ---
-
+    # Rysowanie paskami (GL_TRIANGLE_STRIP)
     # Tworzymy N-1 pasków (warstw)
     for i in range(N - 1):
         glBegin(GL_TRIANGLE_STRIP)  # Rozpoczynamy nowy pasek
@@ -103,15 +98,12 @@ def render(time):
             glColor3fv(COLORS[i + 1][j])
             glVertex3fv(VERTICES[i + 1][j])
 
-        glEnd()  # Kończymy pasek
-
-    # ---------------------------------------------------
+        glEnd()
 
     glFlush()
 
 
 def update_viewport(window, width, height):
-    # ... (funkcja update_viewport bez zmian)
     if height == 0: height = 1
     if width == 0: width = 1
     aspect_ratio = width / height
@@ -130,11 +122,10 @@ def update_viewport(window, width, height):
 
 
 def main():
-    # ... (funkcja main bez zmian)
     if not glfwInit():
         sys.exit(-1)
 
-    window = glfwCreateWindow(400, 400, "Lab 3: Jajko 3D (Triangle Strip)", None, None)
+    window = glfwCreateWindow(400, 400, "Jajko 3D (Triangle Strip), 4.5", None, None)
     if not window:
         glfwTerminate()
         sys.exit(-1)

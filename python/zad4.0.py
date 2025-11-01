@@ -2,18 +2,18 @@
 import sys
 import numpy as np
 import math
-import random  # <--- Wymagane dla losowych kolorów
+import random
 
 from glfw.GLFW import *
 
 from OpenGL.GL import *
 from OpenGL.GLU import *
 
-N = 30  # Rozdzielczość siatki
+N = 30
 
 # Globalne tablice na współrzędne i kolory
 VERTICES = np.zeros((N, N, 3))
-COLORS = np.zeros((N, N, 3))  # <--- Tablica na losowe kolory
+COLORS = np.zeros((N, N, 3))
 
 
 def startup():
@@ -44,11 +44,10 @@ def startup():
             VERTICES[i][j][1] = y
             VERTICES[i][j][2] = z
 
-            # --- Wymaganie 4.0: Losowy kolor dla każdego wierzchołka ---
+            # Losowy kolor dla każdego wierzchołka
             COLORS[i][j][0] = random.random()  # R
             COLORS[i][j][1] = random.random()  # G
             COLORS[i][j][2] = random.random()  # B
-            # --------------------------------------------------------
 
 
 def shutdown():
@@ -56,7 +55,6 @@ def shutdown():
 
 
 def axes():
-    # ... (funkcja axes bez zmian)
     glBegin(GL_LINES)
     glColor3f(1.0, 0.0, 0.0)
     glVertex3f(-5.0, 0.0, 0.0);
@@ -71,7 +69,6 @@ def axes():
 
 
 def spin(angle):
-    # ... (funkcja spin bez zmian)
     glRotatef(angle, 1.0, 0.0, 0.0)
     glRotatef(angle, 0.0, 1.0, 0.0)
     glRotatef(angle, 0.0, 0.0, 1.0)
@@ -87,7 +84,7 @@ def render(time):
 
     axes()
 
-    # --- Wymaganie 4.0: Rysowanie trójkątami (GL_TRIANGLES) ---
+    # Rysowanie trójkątami
     glBegin(GL_TRIANGLES)
 
     for i in range(N - 1):  # Iterujemy do N-1, aby nie wyjść poza zakres
@@ -125,13 +122,11 @@ def render(time):
             glVertex3fv(v3)
 
     glEnd()
-    # ---------------------------------------------------
 
     glFlush()
 
 
 def update_viewport(window, width, height):
-    # ... (funkcja update_viewport bez zmian)
     if height == 0: height = 1
     if width == 0: width = 1
     aspect_ratio = width / height
@@ -153,7 +148,7 @@ def main():
     if not glfwInit():
         sys.exit(-1)
 
-    window = glfwCreateWindow(400, 400, "Lab 3: Jajko 3D (Trójkąty)", None, None)
+    window = glfwCreateWindow(400, 400, "Jajko 3D (Trójkąty), 4.0", None, None)
     if not window:
         glfwTerminate()
         sys.exit(-1)

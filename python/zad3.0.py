@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import sys
-import numpy as np  # Używamy numpy do tablic i obliczeń [cite: 258]
+import numpy as np
 
 from glfw.GLFW import *
 
@@ -10,21 +10,21 @@ from OpenGL.GLU import *
 # Ustawiamy rozdzielczość siatki (N x N)
 N = 30
 
-# Globalna tablica do przechowywania wierzchołków [cite: 256]
+# Globalna tablica do przechowywania wierzchołków
 VERTICES = np.zeros((N, N, 3))
 
 
 def startup():
-    """ Oblicza wierzchołki i włącza bufor głębi """
+    # Oblicza wierzchołki i włącza bufor głębi
     global VERTICES, N
 
     update_viewport(None, 400, 400)
-    glClearColor(0.0, 0.0, 0.0, 1.0)  # Czarne tło dla lepszej widoczności
+    glClearColor(0.0, 0.0, 0.0, 1.0)
 
-    # Włącz mechanizm bufora głębi [cite: 164, 165]
+    # Włącz mechanizm bufora głębi
     glEnable(GL_DEPTH_TEST)
 
-    # Generowanie tablic dla u i v (od 0.0 do 1.0) [cite: 259, 260]
+    # Generowanie tablic dla u i v (od 0.0 do 1.0)
     u_values = np.linspace(0.0, 1.0, N)
     v_values = np.linspace(0.0, 1.0, N)
 
@@ -60,20 +60,20 @@ def shutdown():
 
 
 def axes():
-    """ Rysuje osie X (czerwona), Y (zielona), Z (niebieska) """
+    # Rysuje osie X (czerwona), Y (zielona), Z (niebieska)
     glBegin(GL_LINES)
 
-    # X axis (Red)
+    # X
     glColor3f(1.0, 0.0, 0.0)
     glVertex3f(-5.0, 0.0, 0.0)
     glVertex3f(5.0, 0.0, 0.0)
 
-    # Y axis (Green)
+    # Y
     glColor3f(0.0, 1.0, 0.0)
     glVertex3f(0.0, -5.0, 0.0)
     glVertex3f(0.0, 5.0, 0.0)
 
-    # Z axis (Blue)
+    # Z
     glColor3f(0.0, 0.0, 1.0)
     glVertex3f(0.0, 0.0, -5.0)
     glVertex3f(0.0, 0.0, 5.0)
@@ -82,18 +82,17 @@ def axes():
 
 
 def render(time):
-    # Czyścimy bufor koloru ORAZ bufor głębi
+    # Czyścimy bufor koloru oraz bufor głębi
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
     glMatrixMode(GL_MODELVIEW)
     glLoadIdentity()  # Resetujemy macierz modelu
 
-    # Rysujemy osie
     axes()
 
     # Rysowanie modelu jajka za pomocą punktów
     glBegin(GL_POINTS)
-    glColor3f(1.0, 1.0, 1.0)  # Kolor punktów (biały)
+    glColor3f(1.0, 1.0, 1.0)
 
     # Wyświetlamy współrzędne obliczone w startup()
     for i in range(N):
@@ -106,7 +105,7 @@ def render(time):
 
 
 def update_viewport(window, width, height):
-    """ Ustawia rzutnię 3D (ortogonalną) """
+    # Ustawia rzutnię 3D (ortogonalną)
     if height == 0:
         height = 1
     if width == 0:
@@ -132,7 +131,7 @@ def main():
     if not glfwInit():
         sys.exit(-1)
 
-    window = glfwCreateWindow(400, 400, "Lab 3: Model Jajka (Punkty)", None, None)
+    window = glfwCreateWindow(400, 400, "Model Jajka (Punkty), 3.0", None, None)
     if not window:
         glfwTerminate()
         sys.exit(-1)
@@ -141,11 +140,11 @@ def main():
     glfwSetFramebufferSizeCallback(window, update_viewport)
     glfwSwapInterval(1)
 
-    # Poprawka: Wymuszenie aktualizacji rzutni przy starcie
+    # Wymuszenie aktualizacji rzutni przy starcie
     width, height = glfwGetFramebufferSize(window)
     update_viewport(window, width, height)
 
-    startup()  # Obliczenie wierzchołków
+    startup()
 
     while not glfwWindowShouldClose(window):
         render(glfwGetTime())
